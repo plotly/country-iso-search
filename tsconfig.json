@@ -5,6 +5,8 @@
         "module": "nodenext",
         "moduleResolution": "nodenext",
         "target": "es2022",
+        // This option is required until tsup stops injecting `baseUrl`
+        "ignoreDeprecations": "6.0",
         // Don't auto-discover any additional types
         "types": [],
         "lib": ["es2022"],
