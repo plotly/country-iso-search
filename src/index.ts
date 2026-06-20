@@ -19,12 +19,50 @@ export const byAlpha3: ReadonlyMap<string, CountryRecord> = _byAlpha3;
 export const byAlpha2: ReadonlyMap<string, CountryRecord> = _byAlpha2;
 export const byM49: ReadonlyMap<string, CountryRecord> = _byM49;
 
+/**
+ * Normalize an input string for name/alias matching.
+ *
+ *   - lowercases
+ *   - strips Latin combining diacritical marks (so "Côte" → "cote", "Türkiye" → "turkiye")
+ *   - strips Arabic diacritics — fatha/kasra/shadda/sukun/etc. (so "إتَّحَاد"
+ *     matches "اتحاد")
+ *   - strips apostrophes — straight and curly (so "Côte d'Ivoire" matches
+ *     "Cote dIvoire" and "people's republic" matches "peoples republic")
+ *   - replaces `&` with ` and `
+ *   - strips `.`, `()`, and `,` (so "U.K." matches "UK", "Iran (Islamic
+ *     Republic of)" matches "Iran Islamic Republic of")
+ *   - replaces `-` / `–` / `—` with a space (so "Guinea-Bissau" matches
+ *     "Guinea Bissau")
+ *   - trims and collapses internal whitespace
+ *   - drops a single leading `the ` (so "the UK" matches "UK")
+ */
+function sanitize(s: string): string {
+    return s
+        .normalize("NFD")
+        .replace(/[̀-ͯ]/g, "")
+        .normalize("NFC")
+        .toLowerCase()
+        .replace(/[ً-ٟ]/g, "")
+        .replace(/['‘’ʻʼʽˈ′`]/g, "")
+        .replace(/&/g, " and ")
+        .replace(/[.(),]/g, "")
+        .replace(/[-–—]/g, " ")
+        .trim()
+        .replace(/\s+/g, " ")
+        .replace(/^the\s+/, "");
+}
+
 function indexNames(records: ReadonlyArray<CountryRecord>): Map<string, string> {
     const m = new Map<string, string>();
     for (const c of records) {
-        for (const key of [c.name.toLowerCase(), ...c.aliases]) {
+        for (const raw of [c.name, ...c.aliases]) {
+            const key = sanitize(raw);
             const existing = m.get(key);
-            if (existing !== undefined) {
+            // After sanitize, multiple aliases for the same country may collapse
+            // to the same key (e.g. "côte d'ivoire" and "cote d'ivoire" both
+            // become "cote divoire"). That's fine — they point to the same
+            // iso3. Only throw on a genuine cross-country collision.
+            if (existing !== undefined && existing !== c.iso3) {
                 throw new Error(`Duplicate name/alias "${key}": ${existing} vs ${c.iso3}`);
             }
             m.set(key, c.iso3);
@@ -51,8 +89,10 @@ export interface LookupOptions {
  *   - alpha-3, case-insensitive (e.g. `"FRA"`, `"fra"`)
  *   - alpha-2, case-insensitive (e.g. `"FR"`, `"fr"`)
  *   - UN M49 numeric, as number or string with up to 3 digits (e.g. `250`, `"250"`, `4`, `"04"`)
- *   - a country name or alias (case-insensitive, exact match after trimming and
- *     collapsing internal whitespace)
+ *   - a country name or alias, case-insensitive. Input is sanitized before
+ *     matching: diacritics are stripped (`Türkiye` → `turkiye`), apostrophes
+ *     and `.` `()` `,` are dropped, `&` is mapped to `and`, `-`/`–`/`—` become
+ *     spaces, a leading `the ` is dropped, and internal whitespace is collapsed.
  *
  * Returns the canonical alpha-3, or `undefined` when no record matches.
  *
@@ -85,8 +125,7 @@ export function lookupAlpha3(input: string | number, options?: LookupOptions): s
         if (hit) return hit;
     }
 
-    // Replace multiple spaces with one space
-    const cleaned = s.replace(/\s+/g, " ").toLowerCase();
+    const key = sanitize(s);
 
-    return byName.get(cleaned) ?? (includeX ? byNameX.get(cleaned) : undefined);
+    return byName.get(key) ?? (includeX ? byNameX.get(key) : undefined);
 }

@@ -72,6 +72,39 @@ describe("lookupAlpha3", () => {
             expect(lookupAlpha3("Côte d'Ivoire")).toBe("CIV");
         });
 
+        it("strips diacritics so unaccented input still resolves", () => {
+            expect(lookupAlpha3("Turkiye")).toBe("TUR");
+            expect(lookupAlpha3("Cote d'Ivoire")).toBe("CIV");
+            expect(lookupAlpha3("Aland Islands")).toBe("ALA");
+        });
+
+        it("matches apostrophe variants and apostrophe-less input", () => {
+            expect(lookupAlpha3("Côte d’Ivoire")).toBe("CIV");
+            expect(lookupAlpha3("Cote dIvoire")).toBe("CIV");
+            expect(lookupAlpha3("Democratic Peoples Republic of Korea")).toBe("PRK");
+        });
+
+        it("maps '&' to 'and'", () => {
+            expect(lookupAlpha3("Trinidad & Tobago")).toBe("TTO");
+        });
+
+        it("drops a leading 'the'", () => {
+            expect(lookupAlpha3("the United States of America")).toBe("USA");
+            expect(lookupAlpha3("The Netherlands")).toBe("NLD");
+        });
+
+        it("strips periods", () => {
+            expect(lookupAlpha3("U.K.")).toBe("GBR");
+            expect(lookupAlpha3("U.S.A.")).toBe("USA");
+            expect(lookupAlpha3("St. Kitts and Nevis")).toBe("KNA");
+        });
+
+        it("strips parens and treats hyphens as spaces", () => {
+            expect(lookupAlpha3("Guinea Bissau")).toBe("GNB");
+            expect(lookupAlpha3("Guinea–Bissau")).toBe("GNB");
+            expect(lookupAlpha3("Iran Islamic Republic of")).toBe("IRN");
+        });
+
         it("resolves names with parenthesized qualifiers", () => {
             expect(lookupAlpha3("Iran (Islamic Republic of)")).toBe("IRN");
         });
