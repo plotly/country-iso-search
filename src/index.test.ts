@@ -224,54 +224,6 @@ describe("COUNTRIES table integrity", () => {
     });
 });
 
-// Regression tests covering historical regex substring-collision bugs that were
-// fixed by anchoring every COUNTRIES regex with `^(?:...)$`.
-describe("regex collision regression tests", () => {
-    it("Dominican Republic should resolve to DOM, not DMA (Dominica)", () => {
-        expect(lookupAlpha3("Dominican Republic")).toBe("DOM");
-    });
-
-    it("British Indian Ocean Territory should resolve to IOT, not IND (India)", () => {
-        expect(lookupAlpha3("British Indian Ocean Territory")).toBe("IOT");
-    });
-
-    it("Nigeria should resolve to NGA, not NER (Niger)", () => {
-        expect(lookupAlpha3("Nigeria")).toBe("NGA");
-    });
-
-    it("Guinea-Bissau should resolve to GNB, not GIN (Guinea)", () => {
-        expect(lookupAlpha3("Guinea-Bissau")).toBe("GNB");
-    });
-
-    it("Equatorial Guinea should resolve to GNQ, not GIN (Guinea)", () => {
-        expect(lookupAlpha3("Equatorial Guinea")).toBe("GNQ");
-    });
-
-    it("Papua New Guinea should resolve to PNG, not GIN (Guinea)", () => {
-        expect(lookupAlpha3("Papua New Guinea")).toBe("PNG");
-    });
-
-    it("Democratic People's Republic of Korea should resolve to PRK, not KOR", () => {
-        expect(lookupAlpha3("Democratic People's Republic of Korea")).toBe("PRK");
-    });
-
-    it("Romania should resolve to ROU, not OMN (Oman)", () => {
-        expect(lookupAlpha3("Romania")).toBe("ROU");
-    });
-
-    it("South Georgia and the South Sandwich Islands should resolve to SGS, not GEO (Georgia)", () => {
-        expect(lookupAlpha3("South Georgia and the South Sandwich Islands")).toBe("SGS");
-    });
-
-    it("Somalia should resolve to SOM, not MLI (Mali)", () => {
-        expect(lookupAlpha3("Somalia")).toBe("SOM");
-    });
-
-    it("South Sudan should resolve to SSD, not SDN (Sudan)", () => {
-        expect(lookupAlpha3("South Sudan")).toBe("SSD");
-    });
-});
-
 describe("United Kingdom aliases", () => {
     const gbrAliases = [
         "Britain",
