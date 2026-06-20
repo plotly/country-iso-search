@@ -33,10 +33,16 @@ export const byM49: ReadonlyMap<string, CountryRecord> = _byM49;
  *     Republic of)" matches "Iran Islamic Republic of")
  *   - replaces `-` / `–` / `—` with a space (so "Guinea-Bissau" matches
  *     "Guinea Bissau")
+ *   - expands `st` to `saint` as a whole word (so "St. Kitts" matches the
+ *     canonical "Saint Kitts and Nevis")
  *   - trims and collapses internal whitespace
  *   - drops a single leading `the ` (so "the UK" matches "UK")
+ *
+ * Exported for advanced use: consumers normalizing batches of country
+ * references against external data can produce keys identical to the
+ * lookup's internal name/alias index by calling this.
  */
-function sanitize(s: string): string {
+export function sanitize(s: string): string {
     return s
         .normalize("NFD")
         .replace(/[̀-ͯ]/g, "")
@@ -47,6 +53,7 @@ function sanitize(s: string): string {
         .replace(/&/g, " and ")
         .replace(/[.(),]/g, "")
         .replace(/[-–—]/g, " ")
+        .replace(/\bst\b/g, "saint")
         .trim()
         .replace(/\s+/g, " ")
         .replace(/^the\s+/, "");
@@ -83,7 +90,7 @@ export interface LookupOptions {
 }
 
 /**
- * Resolve a user-provided country reference to its ISO 3166-1 alpha-3 code.
+ * Resolve a user-provided country reference to its full `CountryRecord`.
  *
  * Accepts:
  *   - alpha-3, case-insensitive (e.g. `"FRA"`, `"fra"`)
@@ -92,9 +99,10 @@ export interface LookupOptions {
  *   - a country name or alias, case-insensitive. Input is sanitized before
  *     matching: diacritics are stripped (`Türkiye` → `turkiye`), apostrophes
  *     and `.` `()` `,` are dropped, `&` is mapped to `and`, `-`/`–`/`—` become
- *     spaces, a leading `the ` is dropped, and internal whitespace is collapsed.
+ *     spaces, `st` expands to `saint`, a leading `the ` is dropped, and
+ *     internal whitespace is collapsed.
  *
- * Returns the canonical alpha-3, or `undefined` when no record matches.
+ * Returns the matching record, or `undefined` when no record matches.
  *
  * Note: numeric strings longer than 3 digits (e.g. `"0250"`) are not zero-stripped
  * and will not resolve. Use the integer form (`250`) or a 3-digit string.
@@ -103,7 +111,7 @@ export interface LookupOptions {
  * @param options - pass `{ includeDisputedAreas: true }` to also resolve custom
  *   X codes by alpha-3, name, or alias
  */
-export function lookupAlpha3(input: string | number, options?: LookupOptions): string | undefined {
+export function lookup(input: string | number, options?: LookupOptions): CountryRecord | undefined {
     // Guard against null/undefined/empty strings
     if (input == null) return undefined;
     const s = String(input).trim();
@@ -112,20 +120,29 @@ export function lookupAlpha3(input: string | number, options?: LookupOptions): s
     const includeX = !!options?.includeDisputedAreas;
 
     if (/^\d+$/.test(s)) {
-        const hit = byM49.get(s.padStart(3, "0"))?.iso3;
+        const hit = byM49.get(s.padStart(3, "0"));
         if (hit) return hit;
     }
     if (/^[A-Za-z]{2}$/.test(s)) {
-        const hit = byAlpha2.get(s.toUpperCase())?.iso3;
+        const hit = byAlpha2.get(s.toUpperCase());
         if (hit) return hit;
     }
     if (/^[A-Za-z]{3}$/.test(s)) {
         const upper = s.toUpperCase();
-        const hit = byAlpha3.get(upper)?.iso3 ?? (includeX ? byAlpha3X.get(upper)?.iso3 : undefined);
+        const hit = byAlpha3.get(upper) ?? (includeX ? byAlpha3X.get(upper) : undefined);
         if (hit) return hit;
     }
 
     const key = sanitize(s);
+    const iso3 = byName.get(key) ?? (includeX ? byNameX.get(key) : undefined);
+    if (iso3 === undefined) return undefined;
+    return byAlpha3.get(iso3) ?? byAlpha3X.get(iso3);
+}
 
-    return byName.get(key) ?? (includeX ? byNameX.get(key) : undefined);
+/**
+ * Resolve a user-provided country reference to its ISO 3166-1 alpha-3 code.
+ * Convenience wrapper around `lookup` that returns only the iso3 string.
+ */
+export function lookupAlpha3(input: string | number, options?: LookupOptions): string | undefined {
+    return lookup(input, options)?.iso3;
 }
