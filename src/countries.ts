@@ -8,6 +8,14 @@
  * before lookup, then matched exactly against the alias index; partial / fuzzy
  * matching is not supported.
  *
+ * The aliases below have been deliberately canonicalized: Latin and Arabic
+ * diacritics are stripped, apostrophes / periods / parens / commas removed,
+ * and hyphens replaced with spaces. This is intentional — `lookupAlpha3`
+ * applies the same `sanitize` transform to user input at lookup time, so
+ * accented / punctuated forms (e.g. "Côte d'Ivoire", "U.K.", "Guinea-Bissau")
+ * still resolve. Storing the canonical form keeps the alias list smaller and
+ * avoids redundant variants. Don't add accented or punctuated variants by hand.
+ *
  * Plotly specific custom disputed-area codes live in COUNTRIES_X. These are
  * "user-assigned codes" and are not specified in ISO 3166-1 or M49. Both iso2 and
  * m49 are intentionally blank on every X record. They're excluded from the default
@@ -108,6 +116,7 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
             "shqiperi",
             "shqiperia",
             "shqiperise",
+            "socialist republic of albania",
         ],
     },
     {
@@ -374,10 +383,6 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
             "saint barths",
             "saint barts",
             "saint bartz",
-            "st barth",
-            "st barthelemy",
-            "st barths",
-            "st barts",
         ],
     },
     {
@@ -1577,7 +1582,6 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
             "federation of saint kitts and nevis",
             "kitts & nevis",
             "saint christopher and nevis",
-            "st kitts & nevis",
         ],
     },
     {
@@ -1662,7 +1666,7 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
         iso2: "LC",
         m49: "662",
         name: "Saint Lucia",
-        aliases: ["🇱🇨", "hewanorra", "iyonola", "st lucia"],
+        aliases: ["🇱🇨", "hewanorra", "iyonola"],
     },
     {
         iso3: "LIE",
@@ -1783,8 +1787,6 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
             "saint martin",
             "saint martin antilles francaises",
             "saint martin france",
-            "st martin",
-            "st martin french part",
         ],
     },
     {
@@ -2048,7 +2050,6 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
         name: "Mauritius",
         aliases: [
             "🇲🇺",
-            "ile de france",
             "ile maurice",
             "la republique de maurice",
             "maurice",
@@ -2529,13 +2530,7 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
         iso2: "SH",
         m49: "654",
         name: "Saint Helena",
-        aliases: [
-            "🇸🇭",
-            "saint helena and dependencies",
-            "saint helena ascension and tristan da cunha",
-            "st helena",
-            "st helena ascension and tristan da cunha",
-        ],
+        aliases: ["🇸🇭", "saint helena and dependencies", "saint helena ascension and tristan da cunha"],
     },
     {
         iso3: "SJM",
@@ -2606,8 +2601,6 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
             "🇵🇲",
             "collectivite territoriale de saint pierre et miquelon",
             "saint pierre et miquelon",
-            "st pierre & miquelon",
-            "st pierre et miquelon",
             "territorial collectivity of saint pierre and miquelon",
         ],
     },
@@ -2700,11 +2693,10 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
             "country of sint maarten",
             "eilandgebied sint maarten",
             "land sint maarten",
+            "saint maarten",
             "saint martin dutch part",
             "sint maarten",
             "sint martin",
-            "st maarten",
-            "st martin dutch part",
         ],
     },
     {
@@ -3010,7 +3002,7 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
         iso2: "VC",
         m49: "670",
         name: "Saint Vincent and the Grenadines",
-        aliases: ["🇻🇨", "saint vincent", "st vincent", "st vincent and grenadines", "st vincent and the grenadines"],
+        aliases: ["🇻🇨", "saint vincent", "saint vincent and grenadines"],
     },
     {
         iso3: "VEN",
