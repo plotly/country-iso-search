@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { byAlpha2, byAlpha3, byM49, COUNTRIES, COUNTRIES_X, lookupAlpha3 } from "./index.js";
+import { byAlpha2, byAlpha3, byM49, COUNTRIES, COUNTRIES_X, lookup, lookupAlpha3, sanitize } from "./index.js";
 
 describe("lookupAlpha3", () => {
     describe("alpha-3 input", () => {
@@ -99,6 +99,13 @@ describe("lookupAlpha3", () => {
             expect(lookupAlpha3("St. Kitts and Nevis")).toBe("KNA");
         });
 
+        it("expands 'st' to 'saint' as a whole word", () => {
+            expect(lookupAlpha3("St Kitts and Nevis")).toBe("KNA");
+            expect(lookupAlpha3("st lucia")).toBe("LCA");
+            // 'st' inside another word must not be touched
+            expect(lookupAlpha3("Estonia")).toBe("EST");
+        });
+
         it("strips parens and treats hyphens as spaces", () => {
             expect(lookupAlpha3("Guinea Bissau")).toBe("GNB");
             expect(lookupAlpha3("Guinea–Bissau")).toBe("GNB");
@@ -164,6 +171,45 @@ describe("lookupAlpha3", () => {
             // biome-ignore lint/suspicious/noExplicitAny: testing runtime undefined guard
             expect(lookupAlpha3(undefined as any)).toBeUndefined();
         });
+    });
+});
+
+describe("lookup (full record)", () => {
+    it("returns the matching CountryRecord by alpha-3", () => {
+        const rec = lookup("FRA");
+        expect(rec?.iso3).toBe("FRA");
+        expect(rec?.iso2).toBe("FR");
+        expect(rec?.name).toBe("France");
+    });
+
+    it("returns the matching CountryRecord by name", () => {
+        expect(lookup("Türkiye")?.iso3).toBe("TUR");
+        expect(lookup("Türkiye")?.iso2).toBe("TR");
+    });
+
+    it("returns undefined for unknown input", () => {
+        expect(lookup("Atlantis")).toBeUndefined();
+    });
+
+    it("respects includeDisputedAreas", () => {
+        expect(lookup("XAC")).toBeUndefined();
+        expect(lookup("XAC", { includeDisputedAreas: true })?.name).toBe("Aksai Chin");
+    });
+});
+
+describe("sanitize (exported)", () => {
+    it("applies the documented transforms", () => {
+        expect(sanitize("Côte d'Ivoire")).toBe("cote divoire");
+        expect(sanitize("the United States of America")).toBe("united states of america");
+        expect(sanitize("Trinidad & Tobago")).toBe("trinidad and tobago");
+        expect(sanitize("St. Kitts and Nevis")).toBe("saint kitts and nevis");
+    });
+
+    it("produces keys consumers can match against the alias index", () => {
+        // Every COUNTRIES record's sanitized name should match its iso3 via lookup.
+        for (const c of COUNTRIES) {
+            expect(lookupAlpha3(sanitize(c.name))).toBe(c.iso3);
+        }
     });
 });
 
