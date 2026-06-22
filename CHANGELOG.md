@@ -12,6 +12,8 @@ where X.Y.Z is the semver of the most recent country-iso-search release.
 
 ## [Unreleased]
 
+## [0.1.0] -- 2026-06-22
+
 Initial release.
 
 ### Added
