@@ -10,11 +10,15 @@
  *
  * The aliases below have been deliberately canonicalized: Latin and Arabic
  * diacritics are stripped, apostrophes / periods / parens / commas removed,
- * and hyphens replaced with spaces. This is intentional — `lookupAlpha3`
- * applies the same `sanitize` transform to user input at lookup time, so
- * accented / punctuated forms (e.g. "Côte d'Ivoire", "U.K.", "Guinea-Bissau")
- * still resolve. Storing the canonical form keeps the alias list smaller and
- * avoids redundant variants. Don't add accented or punctuated variants by hand.
+ * hyphens replaced with spaces, and `st` expanded to `saint`. This is
+ * intentional — `lookupAlpha3` applies the same `sanitize` transform to user
+ * input at lookup time, so accented / punctuated forms (e.g. "Côte d'Ivoire",
+ * "U.K.", "Guinea-Bissau", "St. Kitts") still resolve. Storing the canonical
+ * form keeps the alias list smaller and avoids redundant variants. Don't add
+ * accented or punctuated variants by hand.
+ *
+ * Aliases within each record are sorted with `Intl.Collator("en")` so emoji come first, then
+ * Latin (with `æ` / `ø` interleaved next to ASCII), then non-Latin scripts.
  *
  * Plotly specific custom disputed-area codes live in COUNTRIES_X. These are
  * "user-assigned codes" and are not specified in ISO 3166-1 or M49. Both iso2 and

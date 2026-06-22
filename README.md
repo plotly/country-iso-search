@@ -12,7 +12,7 @@ Resolve country names and codes to their canonical ISO 3166-1 alpha-3 form.
 
 ---
 
-Accepts alpha-3 (`"FRA"`), alpha-2 (`"FR"`), UN M49 numeric (`250` or `"250"`; short codes like `4` or `"04"` are zero-padded), or a country name / alias (case-insensitive, exact match after trim + internal-whitespace collapse). Returns the canonical alpha-3, or `undefined` when no record matches.
+Accepts alpha-3 (`"FRA"`), alpha-2 (`"FR"`), UN M49 numeric (`250`, `"250"`, `"04"`, or `"0250"` — leading zeros are stripped and the result is zero-padded to 3 digits), or a country name / alias. Name/alias matching is case-insensitive and input is sanitized before comparison: diacritics are stripped (`Türkiye` → `turkiye`), apostrophes and `.` `()` `,` are dropped, `&` becomes `and`, `-`/`–`/`—` become spaces, `st` expands to `saint`, a leading `the ` is dropped, and internal whitespace is collapsed. Returns the canonical alpha-3, or `undefined` when no record matches.
 
 ## Install
 
@@ -23,17 +23,24 @@ npm install country-iso-search
 ## Usage
 
 ```ts
-import { lookupAlpha3 } from 'country-iso-search';
+import { lookup, lookupAlpha3 } from 'country-iso-search';
 
-lookupAlpha3('FRA');           // 'FRA'
-lookupAlpha3('FR');            // 'FRA'
-lookupAlpha3(250);             // 'FRA' (M49 numeric)
-lookupAlpha3('04');            // 'AFG' (zero-padded to '004')
-lookupAlpha3('France');        // 'FRA'
-lookupAlpha3('Burma');         // 'MMR' (historical name)
-lookupAlpha3('Türkiye');       // 'TUR'
-lookupAlpha3('🇯🇵');            // 'JPN' (flag emoji)
-lookupAlpha3('not a country'); // undefined
+lookupAlpha3('FRA');                 // 'FRA'
+lookupAlpha3('FR');                  // 'FRA'
+lookupAlpha3(250);                   // 'FRA' (M49 numeric)
+lookupAlpha3('04');                  // 'AFG' (zero-padded to '004')
+lookupAlpha3('0250');                // 'FRA' (leading zeros stripped)
+lookupAlpha3('France');              // 'FRA'
+lookupAlpha3('Burma');               // 'MMR' (historical name)
+lookupAlpha3('Türkiye');             // 'TUR'
+lookupAlpha3('cote d ivoire');       // 'CIV' (apostrophes / diacritics ignored)
+lookupAlpha3('St. Kitts and Nevis'); // 'KNA'
+lookupAlpha3('🇯🇵');                  // 'JPN' (flag emoji)
+lookupAlpha3('not a country');       // undefined
+
+// `lookup` returns the full record:
+lookup('France')?.iso2;              // 'FR'
+lookup('France')?.m49;               // '250'
 ```
 
 ## Disputed-area codes (opt-in)
@@ -55,6 +62,15 @@ lookupAlpha3('Aksai Chin', { includeDisputedAreas: true }); // 'XAC'
 - `input: string | number` — country identifier in any supported form.
 - `options?: { includeDisputedAreas?: boolean }` — when `true`, also match custom disputed-area codes.
 - Returns `string | undefined`.
+
+### `lookup(input, options?)`
+
+Same input shape as `lookupAlpha3`, but returns the full `CountryRecord` (or `undefined`). Use this when you need `iso2`, `m49`, the canonical `name`, or the `aliases` list instead of just the alpha-3.
+
+### `sanitize(input)`
+
+- `input: string` — text to normalize.
+- Returns the same string lowercased with diacritics / apostrophes / `.` `()` `,` stripped, `&` mapped to `and`, hyphen-likes turned into spaces, `st` expanded to `saint`, and a leading `the ` dropped. Exported for advanced use — call it to produce keys consistent with the internal name/alias index.
 
 ### Exports
 
@@ -79,7 +95,7 @@ interface CountryRecord {
 
 ## Data
 
-`COUNTRIES` mirrors UN M49 / ISO 3166-1 for `iso3`, `iso2`, `m49`, and `name`. The ~1,900 aliases were assembled from CLDR, Wikidata (filtered to languages tagged official via P37), and GeoNames, then **curated by hand** to resolve substring collisions (e.g. Niger vs. Nigeria, Guinea vs. Guinea-Bissau vs. Equatorial Guinea vs. Papua New Guinea), normalize transliterations, and drop variants that would produce false matches. The list is updated editorially — there is no regeneration script. To add an alias or fix an entry, edit [src/index.ts](src/index.ts) directly and open a pull request.
+`COUNTRIES` mirrors UN M49 / ISO 3166-1 for `iso3`, `iso2`, `m49`, and `name`. The ~1,700 aliases were assembled from CLDR, Wikidata (filtered to languages tagged official via P37), and GeoNames, then **curated by hand** to resolve substring collisions (e.g. Niger vs. Nigeria, Guinea vs. Guinea-Bissau vs. Equatorial Guinea vs. Papua New Guinea), normalize transliterations, and drop variants that would produce false matches. Aliases are stored in their sanitized form (diacritics / apostrophes / punctuation stripped, hyphens turned into spaces, `st` expanded to `saint`), so don't add accented or punctuated variants by hand — `lookupAlpha3` applies the same transform to user input at lookup time. To add an alias or fix an entry, edit [src/countries.ts](src/countries.ts) directly and open a pull request.
 
 `COUNTRIES_X` ships Plotly-specific user-assigned codes for disputed-area features (`XAC`, `XAP`, `XBT`, `XHT`, `XJK`) that are not part of ISO 3166-1 or M49.
 

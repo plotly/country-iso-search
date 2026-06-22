@@ -23,7 +23,7 @@ The basic flow is similar to other Plotly libraries:
 1. **Discussion** — open an issue describing what you want to change and why. For alias additions, mention the source you're drawing from (a CLDR locale, a Wikidata language tag, an authoritative reference document). For logic changes, describe the use case the current API doesn't serve.
 2. **Proposal** — for non-trivial changes, propose the specific edit (which records, which aliases, which API shape). This is where maintainers can flag conflicts before you write code — for example, an alias collision with an existing record's name.
 3. **Iteration** — maintainers and other community members give feedback. For alias contributions, expect questions about provenance and whether the form would collide with another country.
-4. **Development** — branch, edit [src/index.ts](src/index.ts), add or update tests, and open a pull request.
+4. **Development** — branch, edit [src/countries.ts](src/countries.ts) (for data changes) or [src/index.ts](src/index.ts) (for logic), add or update tests, and open a pull request.
 5. **Review** — a maintainer reviews. Iteration may continue.
 6. **Merge** — the change lands on `main` and ships with the next release (see [RELEASE.md](RELEASE.md)).
 
@@ -41,7 +41,7 @@ Please follow the [pull request template](.github/PULL_REQUEST_TEMPLATE.md). In 
 
 - Branch off the latest `main`. Do not open PRs from your own `main`.
 - Run `npm run lint`, `npm run typecheck`, `npm test`, and `npm run build` locally before pushing.
-- For alias additions, make sure the new aliases are lowercased and sorted alphabetically within each record (the existing data is sorted; new entries should match).
+- For alias additions, make sure the new aliases are lowercased, written in their sanitized form (no diacritics / apostrophes / `.` `()` `,` / hyphens; use `saint` not `st`), and sorted within each record using VS Code's "Sort Lines Ascending" (equivalent to `Intl.Collator("en")`: emoji first, then Latin, then non-Latin).
 - Don't force-push to remote branches once the PR is open — it makes review difficult. Merge `main` in if you need to update.
 
 ## Development
@@ -76,18 +76,18 @@ CI runs `typecheck`, `test`, and `build` on every PR — see [.github/workflows/
 
 ### Adding an alias
 
-1. Find the country's record in [src/index.ts](src/index.ts). Records are alphabetically ordered by ISO 3166-1 alpha-3 code.
-2. Add the new alias to the `aliases` array. It must be **lowercased** (input is lowercased before matching) and kept **sorted alphabetically** within the array. Use the existing entries as a style guide.
-3. Run `npm test`. The duplicate-detection check runs at module load — if your alias collides with another record's name or alias, the tests will throw on import with a clear "Duplicate name/alias" error pointing at the collision.
-4. If you're confident the alias is a common one, consider adding a regression test in [src/index.test.ts](src/index.test.ts) to lock in the resolution. The existing "regex collision regression tests" and "United Kingdom aliases" blocks are good models.
+1. Find the country's record in [src/countries.ts](src/countries.ts). Records are ordered by ISO 3166-1 alpha-3 code.
+2. Add the new alias to the `aliases` array. It must be **lowercased** and in **sanitized form** — `lookupAlpha3` applies `sanitize` (strips diacritics / apostrophes / `.` `()` `,`; turns hyphen-likes into spaces; expands `st` → `saint`; drops a leading `the `) to user input before matching, so adding accented or punctuated variants by hand is redundant and will trip the duplicate-detection check. Keep entries sorted within the array using VS Code's "Sort Lines Ascending" (equivalent to `Intl.Collator("en")`: emoji first, then Latin, then non-Latin).
+3. Run `npm test`. The duplicate-detection check runs at module load — if your alias collapses to the same sanitized key as another country's name or alias, the tests will throw on import with a clear "Duplicate name/alias" error pointing at the collision. (Within-country collisions are tolerated — they resolve to the same iso3.)
+4. If you're confident the alias is a common one, consider adding a regression test in [src/index.test.ts](src/index.test.ts) to lock in the resolution. The existing "United Kingdom aliases" block is a good model.
 
 ### Adding a country (rare)
 
-If a new country is admitted to ISO 3166-1 or M49, add the full record (alpha-3, alpha-2, M49, name, aliases) at the correct alphabetical position. Coordinate with maintainers — these changes usually warrant a minor version bump and a CHANGELOG entry under `### Added`.
+If a new country is admitted to ISO 3166-1 or M49, add the full record (alpha-3, alpha-2, M49, name, aliases) to [src/countries.ts](src/countries.ts) at the correct alpha-3-ordered position. Coordinate with maintainers — these changes usually warrant a minor version bump and a CHANGELOG entry under `### Added`.
 
 ### Touching the lookup logic
 
-Logic changes live in `lookupAlpha3` and its helpers at the bottom of [src/index.ts](src/index.ts). Keep changes small, add tests, and call out any behavior change in the PR description so it can be reflected accurately in the CHANGELOG.
+Logic changes live in [src/index.ts](src/index.ts) (`lookup`, `lookupAlpha3`, `sanitize`, and `indexNames`). Keep changes small, add tests, and call out any behavior change in the PR description so it can be reflected accurately in the CHANGELOG.
 
 ## Releases
 
