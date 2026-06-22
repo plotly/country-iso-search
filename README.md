@@ -43,29 +43,48 @@ lookup('France')?.iso2;              // 'FR'
 lookup('France')?.m49;               // '250'
 ```
 
-## Disputed-area codes (opt-in)
+## Custom records
 
-The package ships custom codes for disputed-area features. These are **not** ISO 3166-1 / M49 and are excluded from `lookupAlpha3` by default. Pass `{ includeDisputedAreas: true }` to opt in:
+Need codes for sub-national regions, historical countries, disputed areas, or anything else outside ISO 3166-1? Pass your own records to `createLookup` and use the returned scoped helpers. Spread `COUNTRIES` to layer custom records on top of the canonical data:
 
 ```ts
-lookupAlpha3('XAC');                                       // undefined
-lookupAlpha3('XAC', { includeDisputedAreas: true });       // 'XAC'
-lookupAlpha3('Aksai Chin', { includeDisputedAreas: true }); // 'XAC'
+import { createLookup, COUNTRIES, type CountryRecord } from 'country-iso-search';
+
+const CUSTOM: CountryRecord[] = [
+    { iso3: 'XAC', iso2: '', m49: '', name: 'Aksai Chin', aliases: [] },
+    { iso3: 'XJK', iso2: '', m49: '', name: 'Jammu and Kashmir', aliases: [] },
+];
+
+const { lookupAlpha3, lookup, byAlpha3, byAlpha2, byM49 } = createLookup([
+    ...COUNTRIES,
+    ...CUSTOM,
+]);
+
+lookupAlpha3('FRA');               // 'FRA' (canonical)
+lookupAlpha3('XAC');               // 'XAC' (custom)
+lookupAlpha3('Aksai Chin');        // 'XAC'
 ```
 
-`iso2` and `m49` are blank on every X record. Only alpha-3 and name/alias lookups resolve to X records.
+Leave `iso2` and `m49` blank on user-assigned codes — `createLookup` skips blank values when building the `byAlpha2` and `byM49` maps. Cross-country alias collisions throw at construction time so they can be fixed before any lookups happen.
 
 ## API
 
-### `lookupAlpha3(input, options?)`
+### `lookupAlpha3(input)`
 
 - `input: string | number` — country identifier in any supported form.
-- `options?: { includeDisputedAreas?: boolean }` — when `true`, also match custom disputed-area codes.
 - Returns `string | undefined`.
 
-### `lookup(input, options?)`
+### `lookup(input)`
 
 Same input shape as `lookupAlpha3`, but returns the full `CountryRecord` (or `undefined`). Use this when you need `iso2`, `m49`, the canonical `name`, or the `aliases` list instead of just the alpha-3.
+
+### `createLookup(records)`
+
+- `records: ReadonlyArray<CountryRecord>` — every record the returned lookup should resolve.
+- Returns `{ lookup, lookupAlpha3, byAlpha3, byAlpha2, byM49 }` scoped to those records.
+- Throws on cross-record name/alias collisions (after sanitization).
+
+The top-level `lookup` / `lookupAlpha3` and `byAlpha3` / `byAlpha2` / `byM49` exports are a `createLookup(COUNTRIES)` instance.
 
 ### `sanitize(input)`
 
@@ -74,18 +93,17 @@ Same input shape as `lookupAlpha3`, but returns the full `CountryRecord` (or `un
 
 ### Exports
 
-- `COUNTRIES: ReadonlyArray<CountryRecord>` — standard ISO 3166-1 / M49 records.
-- `COUNTRIES_X: ReadonlyArray<CountryRecord>` — custom disputed-area records.
+- `COUNTRIES: ReadonlyArray<CountryRecord>` — the bundled ISO 3166-1 / M49 records.
 - `byAlpha3`, `byAlpha2`, `byM49` — `ReadonlyMap<string, CountryRecord>` lookups over `COUNTRIES` (use `.get(key)`; e.g. `byAlpha3.get('FRA')?.name`).
-- `CountryRecord`, `LookupOptions` — TypeScript types.
+- `CountryRecord`, `CountryLookup` — TypeScript types.
 
 ### `CountryRecord`
 
 ```ts
 interface CountryRecord {
     iso3: string;               // ISO 3166-1 alpha-3
-    iso2: string;               // ISO 3166-1 alpha-2 (blank for X records)
-    m49: string;                // UN M49, 3-digit zero-padded (blank for X records)
+    iso2: string;               // ISO 3166-1 alpha-2 (may be blank on custom records)
+    m49: string;                // UN M49, 3-digit zero-padded (may be blank on custom records)
     name: string;               // English short name from UN M49
     aliases: readonly string[]; // additional lowercased forms — historical names,
                                 //   common alternates, native-language variants,
@@ -96,8 +114,6 @@ interface CountryRecord {
 ## Data
 
 `COUNTRIES` mirrors UN M49 / ISO 3166-1 for `iso3`, `iso2`, `m49`, and `name`. The ~1,700 aliases were assembled from CLDR, Wikidata (filtered to languages tagged official via P37), and GeoNames, then **curated by hand** to resolve substring collisions (e.g. Niger vs. Nigeria, Guinea vs. Guinea-Bissau vs. Equatorial Guinea vs. Papua New Guinea), normalize transliterations, and drop variants that would produce false matches. Aliases are stored in their sanitized form (diacritics / apostrophes / punctuation stripped, hyphens turned into spaces, `st` expanded to `saint`), so don't add accented or punctuated variants by hand — `lookupAlpha3` applies the same transform to user input at lookup time. To add an alias or fix an entry, edit [src/countries.ts](src/countries.ts) directly and open a pull request.
-
-`COUNTRIES_X` ships Plotly-specific user-assigned codes for disputed-area features (`XAC`, `XAP`, `XBT`, `XHT`, `XJK`) that are not part of ISO 3166-1 or M49.
 
 GeoNames (CC BY 4.0) and Unicode CLDR (Unicode License V3) require attribution. The full third-party notices live in [NOTICE](NOTICE) in this repository — **consult that file before redistributing this package or its data**, since it carries the attribution texts those licenses require to travel with downstream redistributions. Wikidata is CC0 and is acknowledged there as a courtesy.
 

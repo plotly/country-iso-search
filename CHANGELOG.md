@@ -15,14 +15,14 @@ where X.Y.Z is the semver of the most recent country-iso-search release.
 Initial release.
 
 ### Added
-- `lookupAlpha3(input, options?)` resolves a country reference to its ISO 3166-1 alpha-3 code. Accepts alpha-3 (`"FRA"`, case-insensitive), alpha-2 (`"FR"`, case-insensitive), UN M49 numeric as a number or any numeric string (`250`, `"250"`, `4`, `"04"`, `"0250"` — leading zeros are stripped before zero-padding to 3 digits), or a country name / alias (case-insensitive; sanitized before matching — see below)
-- `lookup(input, options?)` — same input shape as `lookupAlpha3` but returns the full `CountryRecord` (or `undefined`) so callers get `iso2`, `m49`, the canonical `name`, and `aliases` in one call
+- `lookupAlpha3(input)` resolves a country reference to its ISO 3166-1 alpha-3 code. Accepts alpha-3 (`"FRA"`, case-insensitive), alpha-2 (`"FR"`, case-insensitive), UN M49 numeric as a number or any numeric string (`250`, `"250"`, `4`, `"04"`, `"0250"` — leading zeros are stripped before zero-padding to 3 digits), or a country name / alias (case-insensitive; sanitized before matching — see below)
+- `lookup(input)` — same input shape as `lookupAlpha3` but returns the full `CountryRecord` (or `undefined`) so callers get `iso2`, `m49`, the canonical `name`, and `aliases` in one call
+- `createLookup(records)` — builds a scoped lookup over a custom record list
 - `sanitize(input)` exported for advanced use; produces the same normalized key the internal name/alias index is built with
 - 249 ISO 3166-1 records in `COUNTRIES`
-- Custom disputed-area records in `COUNTRIES_X`. Excluded from the default lookup; `iso2` and `m49` intentionally blank.
 - ~1,700 aliases in total, covering English long forms (`Republic of X`, `Kingdom of X`, etc.), historical official names (Burma, Persia, Ceylon, Formosa, Zaire, Rhodesia, etc.), native-language names in each country's official languages, and flag emojis (e.g. `🇫🇷` → `FRA`)
-- `COUNTRIES`, `COUNTRIES_X` exported as `ReadonlyArray<CountryRecord>`
+- `COUNTRIES` exported as `ReadonlyArray<CountryRecord>`
 - `byAlpha3`, `byAlpha2`, `byM49` exported as `ReadonlyMap<string, CountryRecord>` lookups over `COUNTRIES`
-- `CountryRecord`, `LookupOptions` TypeScript types exported
+- `CountryRecord`, `CountryLookup` TypeScript types exported
 - Dual-format package: ships ESM and CJS bundles plus TypeScript declarations in `dist/`
 - MIT licensed

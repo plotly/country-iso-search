@@ -87,7 +87,7 @@ If a new country is admitted to ISO 3166-1 or M49, add the full record (alpha-3,
 
 ### Touching the lookup logic
 
-Logic changes live in [src/index.ts](src/index.ts) (`lookup`, `lookupAlpha3`, `sanitize`, and `indexNames`). Keep changes small, add tests, and call out any behavior change in the PR description so it can be reflected accurately in the CHANGELOG.
+Logic changes live in [src/index.ts](src/index.ts) (`lookup`, `lookupAlpha3`, `createLookup`, `sanitize`). Keep changes small, add tests, and call out any behavior change in the PR description so it can be reflected accurately in the CHANGELOG.
 
 ## Releases
 
