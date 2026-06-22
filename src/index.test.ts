@@ -49,8 +49,9 @@ describe("lookupAlpha3", () => {
             expect(lookupAlpha3("004")).toBe("AFG");
         });
 
-        it("does NOT resolve over-padded numeric strings (padStart only pads up to 3)", () => {
-            expect(lookupAlpha3("0250")).toBeUndefined();
+        it("strips leading zeros from numeric strings longer than 3 digits", () => {
+            expect(lookupAlpha3("0250")).toBe("FRA");
+            expect(lookupAlpha3("00004")).toBe("AFG");
         });
 
         it("returns undefined for unknown M49", () => {

@@ -95,7 +95,9 @@ export interface LookupOptions {
  * Accepts:
  *   - alpha-3, case-insensitive (e.g. `"FRA"`, `"fra"`)
  *   - alpha-2, case-insensitive (e.g. `"FR"`, `"fr"`)
- *   - UN M49 numeric, as number or string with up to 3 digits (e.g. `250`, `"250"`, `4`, `"04"`)
+ *   - UN M49 numeric, as a number or any numeric string (e.g. `250`, `"250"`,
+ *     `4`, `"04"`, `"0250"`); leading zeros are stripped and the result is
+ *     zero-padded to 3 digits before lookup
  *   - a country name or alias, case-insensitive. Input is sanitized before
  *     matching: diacritics are stripped (`Türkiye` → `turkiye`), apostrophes
  *     and `.` `()` `,` are dropped, `&` is mapped to `and`, `-`/`–`/`—` become
@@ -103,9 +105,6 @@ export interface LookupOptions {
  *     internal whitespace is collapsed.
  *
  * Returns the matching record, or `undefined` when no record matches.
- *
- * Note: numeric strings longer than 3 digits (e.g. `"0250"`) are not zero-stripped
- * and will not resolve. Use the integer form (`250`) or a 3-digit string.
  *
  * @param input - country identifier in any supported form
  * @param options - pass `{ includeDisputedAreas: true }` to also resolve custom
@@ -120,7 +119,7 @@ export function lookup(input: string | number, options?: LookupOptions): Country
     const includeX = !!options?.includeDisputedAreas;
 
     if (/^\d+$/.test(s)) {
-        const hit = byM49.get(s.padStart(3, "0"));
+        const hit = byM49.get(String(parseInt(s, 10)).padStart(3, "0"));
         if (hit) return hit;
     }
     if (/^[A-Za-z]{2}$/.test(s)) {
