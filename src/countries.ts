@@ -20,11 +20,9 @@
  * Aliases within each record are sorted with `Intl.Collator("en")` so emoji come first, then
  * Latin (with `æ` / `ø` interleaved next to ASCII), then non-Latin scripts.
  *
- * Plotly specific custom disputed-area codes live in COUNTRIES_X. These are
- * "user-assigned codes" and are not specified in ISO 3166-1 or M49. Both iso2 and
- * m49 are intentionally blank on every X record. They're excluded from the default
- * COUNTRIES list and from lookups; pass `{ includeDisputedAreas: true }` to
- * `lookupAlpha3` to opt in.
+ * To add custom records (private codes for sub-national regions, historical
+ * countries, disputed areas, etc.), don't edit this file — pass your own
+ * records to `createLookup` from `./index` and use the returned scoped helpers.
  */
 
 export interface CountryRecord {
@@ -3176,43 +3174,5 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
             "zimbabwe rhodesia",
             "zimbagwe",
         ],
-    },
-];
-
-export const COUNTRIES_X: ReadonlyArray<CountryRecord> = [
-    {
-        iso3: "XAC",
-        iso2: "",
-        m49: "",
-        name: "Aksai Chin",
-        aliases: [],
-    },
-    {
-        iso3: "XAP",
-        iso2: "",
-        m49: "",
-        name: "Arunachal Pradesh",
-        aliases: [],
-    },
-    {
-        iso3: "XBT",
-        iso2: "",
-        m49: "",
-        name: "Bir Tawil",
-        aliases: [],
-    },
-    {
-        iso3: "XHT",
-        iso2: "",
-        m49: "",
-        name: "Halaib Triangle",
-        aliases: [],
-    },
-    {
-        iso3: "XJK",
-        iso2: "",
-        m49: "",
-        name: "Jammu and Kashmir",
-        aliases: [],
     },
 ];

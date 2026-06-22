@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { byAlpha2, byAlpha3, byM49, COUNTRIES, COUNTRIES_X, lookup, lookupAlpha3, sanitize } from "./index.js";
+import {
+    byAlpha2,
+    byAlpha3,
+    byM49,
+    COUNTRIES,
+    type CountryRecord,
+    createLookup,
+    lookup,
+    lookupAlpha3,
+    sanitize,
+} from "./index.js";
 
 describe("lookupAlpha3", () => {
     describe("alpha-3 input", () => {
@@ -126,37 +136,6 @@ describe("lookupAlpha3", () => {
         });
     });
 
-    describe("disputed areas (X-codes)", () => {
-        it("does NOT resolve X alpha-3 by default", () => {
-            expect(lookupAlpha3("XAC")).toBeUndefined();
-            expect(lookupAlpha3("XJK")).toBeUndefined();
-        });
-
-        it("does NOT resolve X names by default", () => {
-            expect(lookupAlpha3("Aksai Chin")).toBeUndefined();
-            expect(lookupAlpha3("Jammu and Kashmir")).toBeUndefined();
-        });
-
-        it("resolves X alpha-3 when includeDisputedAreas is true", () => {
-            expect(lookupAlpha3("XAC", { includeDisputedAreas: true })).toBe("XAC");
-            expect(lookupAlpha3("xjk", { includeDisputedAreas: true })).toBe("XJK");
-        });
-
-        it("resolves X names when includeDisputedAreas is true", () => {
-            expect(lookupAlpha3("Aksai Chin", { includeDisputedAreas: true })).toBe("XAC");
-            expect(lookupAlpha3("jammu and kashmir", { includeDisputedAreas: true })).toBe("XJK");
-        });
-
-        it("still resolves standard countries when includeDisputedAreas is true", () => {
-            expect(lookupAlpha3("FRA", { includeDisputedAreas: true })).toBe("FRA");
-            expect(lookupAlpha3("France", { includeDisputedAreas: true })).toBe("FRA");
-        });
-
-        it("treats includeDisputedAreas: false the same as default", () => {
-            expect(lookupAlpha3("XAC", { includeDisputedAreas: false })).toBeUndefined();
-        });
-    });
-
     describe("invalid input", () => {
         it("returns undefined for empty string", () => {
             expect(lookupAlpha3("")).toBeUndefined();
@@ -191,11 +170,6 @@ describe("lookup (full record)", () => {
     it("returns undefined for unknown input", () => {
         expect(lookup("Atlantis")).toBeUndefined();
     });
-
-    it("respects includeDisputedAreas", () => {
-        expect(lookup("XAC")).toBeUndefined();
-        expect(lookup("XAC", { includeDisputedAreas: true })?.name).toBe("Aksai Chin");
-    });
 });
 
 describe("sanitize (exported)", () => {
@@ -214,6 +188,64 @@ describe("sanitize (exported)", () => {
     });
 });
 
+describe("createLookup", () => {
+    const CUSTOM: CountryRecord[] = [
+        {
+            iso3: "XAC",
+            iso2: "",
+            m49: "",
+            name: "Aksai Chin",
+            aliases: [],
+        },
+        {
+            iso3: "XJK",
+            iso2: "",
+            m49: "",
+            name: "Jammu and Kashmir",
+            aliases: [],
+        },
+    ];
+
+    it("builds a scoped lookup over the supplied records only", () => {
+        const custom = createLookup(CUSTOM);
+        expect(custom.lookupAlpha3("XAC")).toBe("XAC");
+        expect(custom.lookup("Aksai Chin")?.iso3).toBe("XAC");
+        // FRA is in COUNTRIES but not in CUSTOM, so it shouldn't resolve here.
+        expect(custom.lookupAlpha3("FRA")).toBeUndefined();
+        expect(custom.lookupAlpha3("France")).toBeUndefined();
+    });
+
+    it("composes with the bundled COUNTRIES dataset via spread", () => {
+        const merged = createLookup([...COUNTRIES, ...CUSTOM]);
+        expect(merged.lookupAlpha3("FRA")).toBe("FRA");
+        expect(merged.lookupAlpha3("France")).toBe("FRA");
+        expect(merged.lookupAlpha3("XAC")).toBe("XAC");
+        expect(merged.lookup("Aksai Chin")?.iso3).toBe("XAC");
+    });
+
+    it("excludes blank iso2 / m49 from the lookup maps", () => {
+        const custom = createLookup(CUSTOM);
+        expect(custom.byAlpha2.get("")).toBeUndefined();
+        expect(custom.byM49.get("")).toBeUndefined();
+        expect(custom.byAlpha3.get("XAC")?.name).toBe("Aksai Chin");
+    });
+
+    it("throws on cross-country alias collisions", () => {
+        const collide: CountryRecord[] = [
+            { iso3: "XX1", iso2: "", m49: "", name: "Atlantis", aliases: [] },
+            { iso3: "XX2", iso2: "", m49: "", name: "Atlantis", aliases: [] },
+        ];
+        expect(() => createLookup(collide)).toThrow(/Duplicate name\/alias/);
+    });
+
+    it("does not affect the default top-level lookup", () => {
+        // Build a scoped lookup with conflicting records — top-level must remain pristine.
+        createLookup(CUSTOM);
+        expect(lookupAlpha3("XAC")).toBeUndefined();
+        expect(lookupAlpha3("Aksai Chin")).toBeUndefined();
+    });
+});
+
 describe("lookup tables", () => {
     it("byAlpha3 is keyed by iso3", () => {
         expect(byAlpha3.get("FRA")?.name).toBe("France");
@@ -229,21 +261,12 @@ describe("lookup tables", () => {
         expect(byM49.get("250")?.iso3).toBe("FRA");
         expect(byM49.get("004")?.iso3).toBe("AFG");
     });
-
-    it("byAlpha3 omits X-code entries", () => {
-        expect(byAlpha3.get("XAC")).toBeUndefined();
-        expect(byAlpha3.get("XJK")).toBeUndefined();
-    });
 });
 
 describe("COUNTRIES table integrity", () => {
     it("has unique iso3 codes", () => {
         const codes = COUNTRIES.map((c) => c.iso3);
         expect(new Set(codes).size).toBe(codes.length);
-    });
-
-    it("does not contain any X-codes", () => {
-        expect(COUNTRIES.some((c) => c.iso3.startsWith("X"))).toBe(false);
     });
 
     it("every record round-trips through lookupAlpha3 by iso3", () => {
@@ -308,26 +331,5 @@ describe("code-shape fall-through to alias lookup", () => {
 
     it("unknown alpha-2 shapes still return undefined when no alias matches", () => {
         expect(lookupAlpha3("ZQ")).toBeUndefined();
-    });
-});
-
-describe("COUNTRIES_X table integrity", () => {
-    it("every X record has blank iso2 and m49", () => {
-        for (const c of COUNTRIES_X) {
-            expect(c.iso2).toBe("");
-            expect(c.m49).toBe("");
-        }
-    });
-
-    it("every X record round-trips by iso3 when opted in", () => {
-        for (const c of COUNTRIES_X) {
-            expect(lookupAlpha3(c.iso3, { includeDisputedAreas: true })).toBe(c.iso3);
-        }
-    });
-
-    it("every X record round-trips by name when opted in", () => {
-        for (const c of COUNTRIES_X) {
-            expect(lookupAlpha3(c.name, { includeDisputedAreas: true })).toBe(c.iso3);
-        }
     });
 });
