@@ -28,16 +28,21 @@
 export interface CountryRecord {
     /** ISO 3166-1 alpha-3 code; canonical id returned by `lookupAlpha3`. */
     readonly iso3: string;
-    /** ISO 3166-1 alpha-2 code. */
+    /** ISO 3166-1 alpha-2 code. May be blank on user-assigned records passed to `createLookup`. */
     readonly iso2: string;
-    /** UN M49 numeric code, 3-digit zero-padded string (e.g. "004" for Afghanistan). */
+    /**
+     * UN M49 numeric code, 3-digit zero-padded string (e.g. "004" for Afghanistan).
+     * May be blank on user-assigned records passed to `createLookup`.
+     */
     readonly m49: string;
     /** English short name as it appears in the UN M49. */
     readonly name: string;
     /**
      * Additional lowercase forms (excluding the canonical `name`) that resolve
-     * to this record's iso3. Input is trimmed and lowercased before testing,
-     * so aliases must already be lowercased.
+     * to this record's iso3. Aliases must be lowercased and in sanitized form —
+     * `lookupAlpha3` applies `sanitize` to user input before matching, so
+     * accented or punctuated variants would be redundant (and trip the
+     * duplicate-detection check).
      */
     readonly aliases: readonly string[];
 }
