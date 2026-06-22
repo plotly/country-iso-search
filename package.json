@@ -24,7 +24,9 @@
         }
     },
     "files": [
-        "dist"
+        "dist",
+        "CHANGELOG.md",
+        "NOTICE"
     ],
     "keywords": [
         "iso",
