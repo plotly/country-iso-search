@@ -12,6 +12,15 @@ where X.Y.Z is the semver of the most recent country-iso-search release.
 
 ## [Unreleased]
 
+## [0.1.1] -- 2026-06-22
+
+### Changed
+- `sanitize` now drops `the` immediately after `,` or `(`, so ISO 3166-1 article forms like `"Korea, the Republic of"`, `"Korea (the Republic of)"` resolve correctly
+- `sanitize` now strips `[` and `]` so the ISO annotation form `"Falkland Islands (the) [Malvinas]"` resolves
+- Resolution now covers all 249 ISO 3166-1 short uppercase names
+- Constituent components of multi-part country names now resolve as aliases: `"Antigua"` / `"Barbuda"` → ATG
+- Comma-inverted aliases added for countries whose canonical name doesn't already cover the form: `"Korea, Republic of"` → KOR
+
 ## [0.1.0] -- 2026-06-22
 
 Initial release.
