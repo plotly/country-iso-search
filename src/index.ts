@@ -23,12 +23,16 @@ export { COUNTRIES, type CountryRecord } from "./countries.js";
  *   - strips apostrophes — straight and curly (so "Côte d'Ivoire" matches
  *     "Cote dIvoire" and "people's republic" matches "peoples republic")
  *   - replaces `&` with ` and `
- *   - strips `.`, `()`, and `,` (so "U.K." matches "UK", "Iran (Islamic
- *     Republic of)" matches "Iran Islamic Republic of")
+ *   - strips `.`, `()`, `[]`, and `,` (so "U.K." matches "UK", "Iran (Islamic
+ *     Republic of)" matches "Iran Islamic Republic of", and "Falkland Islands
+ *     (the) [Malvinas]" matches the canonical "Falkland Islands (Malvinas)")
  *   - replaces `-` / `–` / `—` with a space (so "Guinea-Bissau" matches
  *     "Guinea Bissau")
  *   - expands `st` to `saint` as a whole word (so "St. Kitts" matches the
  *     canonical "Saint Kitts and Nevis")
+ *   - drops `the` immediately after `,` or `(` (so the ISO 3166-1 short-name
+ *     forms `"Korea, the Republic of"` and `"Korea (the Republic of)"` match
+ *     the canonical "Republic of Korea")
  *   - trims and collapses internal whitespace
  *   - drops a single leading `the ` (so "the UK" matches "UK")
  *
@@ -45,7 +49,8 @@ export function sanitize(s: string): string {
         .replace(/[ً-ٟ]/g, "")
         .replace(/['‘’ʻʼʽˈ′`]/g, "")
         .replace(/&/g, " and ")
-        .replace(/[.(),]/g, "")
+        .replace(/([,(])\s*the\b/g, "$1")
+        .replace(/[.(),[\]]/g, "")
         .replace(/[-–—]/g, " ")
         .replace(/\bst\b/g, "saint")
         .trim()

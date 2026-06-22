@@ -117,6 +117,76 @@ describe("lookupAlpha3", () => {
             expect(lookupAlpha3("Estonia")).toBe("EST");
         });
 
+        it("drops 'the' immediately after '(' or ',' (ISO short-name article)", () => {
+            // (the) suffix forms — canonical name has no "the", so the regex
+            // makes parens collapse to nothing.
+            expect(lookupAlpha3("Bahamas (the)")).toBe("BHS");
+            expect(lookupAlpha3("Philippines (the)")).toBe("PHL");
+            // (the X of) qualifier forms.
+            expect(lookupAlpha3("Korea (the Republic of)")).toBe("KOR");
+            expect(lookupAlpha3("Korea (the Democratic People's Republic of)")).toBe("PRK");
+            expect(lookupAlpha3("Iran (the Islamic Republic of)")).toBe("IRN");
+            // Comma-the equivalents.
+            expect(lookupAlpha3("Korea, the Republic of")).toBe("KOR");
+            expect(lookupAlpha3("Bahamas, the")).toBe("BHS");
+        });
+
+        it("strips square brackets (ISO 'Falkland Islands (the) [Malvinas]')", () => {
+            expect(lookupAlpha3("Falkland Islands (the) [Malvinas]")).toBe("FLK");
+            expect(lookupAlpha3("Falkland Islands [Malvinas]")).toBe("FLK");
+        });
+
+        it("resolves ISO 'Svalbard and Jan Mayen' (UN M49 adds 'Islands')", () => {
+            expect(lookupAlpha3("Jan Mayen")).toBe("SJM");
+            expect(lookupAlpha3("Svalbard")).toBe("SJM");
+            expect(lookupAlpha3("Svalbard and Jan Mayen")).toBe("SJM");
+            expect(lookupAlpha3("Svalbard and Jan Mayen Islands")).toBe("SJM");
+        });
+
+        it("resolves individual components of 'X and Y' country names", () => {
+            expect(lookupAlpha3("Antigua")).toBe("ATG");
+            expect(lookupAlpha3("Barbuda")).toBe("ATG");
+            expect(lookupAlpha3("Bonaire")).toBe("BES");
+            expect(lookupAlpha3("Sint Eustatius")).toBe("BES");
+            expect(lookupAlpha3("Saba")).toBe("BES");
+            expect(lookupAlpha3("Herzegovina")).toBe("BIH");
+            expect(lookupAlpha3("Heard Island")).toBe("HMD");
+            expect(lookupAlpha3("McDonald Island")).toBe("HMD");
+            expect(lookupAlpha3("Saint Kitts")).toBe("KNA");
+            expect(lookupAlpha3("Nevis")).toBe("KNA");
+            expect(lookupAlpha3("Saint Pierre")).toBe("SPM");
+            expect(lookupAlpha3("Miquelon")).toBe("SPM");
+            expect(lookupAlpha3("Sao Tome")).toBe("STP");
+            expect(lookupAlpha3("Principe")).toBe("STP");
+            expect(lookupAlpha3("Grenadines")).toBe("VCT");
+            expect(lookupAlpha3("Ascension")).toBe("SHN");
+            expect(lookupAlpha3("Tristan da Cunha")).toBe("SHN");
+            expect(lookupAlpha3("Turks Islands")).toBe("TCA");
+            expect(lookupAlpha3("Caicos Islands")).toBe("TCA");
+        });
+
+        it("preserves the COG/COD distinction (internal 'the' not dropped)", () => {
+            // No comma/paren before "the" → regex doesn't touch it → the
+            // article stays and the two Congos remain distinguishable.
+            expect(lookupAlpha3("Republic of Congo")).toBe("COG");
+            expect(lookupAlpha3("Republic of the Congo")).toBe("COD");
+        });
+
+        it("resolves ISO comma-inverted forms", () => {
+            expect(lookupAlpha3("Korea, Republic of")).toBe("KOR");
+            expect(lookupAlpha3("Korea, Democratic People's Republic of")).toBe("PRK");
+            expect(lookupAlpha3("Moldova, Republic of")).toBe("MDA");
+            expect(lookupAlpha3("Tanzania, United Republic of")).toBe("TZA");
+            expect(lookupAlpha3("Palestine, State of")).toBe("PSE");
+            expect(lookupAlpha3("Netherlands, Kingdom of the")).toBe("NLD");
+            expect(lookupAlpha3("Congo, Democratic Republic of the")).toBe("COD");
+            // These already work via the parenthesized canonical name + sanitize:
+            expect(lookupAlpha3("Iran, Islamic Republic of")).toBe("IRN");
+            expect(lookupAlpha3("Bolivia, Plurinational State of")).toBe("BOL");
+            expect(lookupAlpha3("Micronesia, Federated States of")).toBe("FSM");
+            expect(lookupAlpha3("Venezuela, Bolivarian Republic of")).toBe("VEN");
+        });
+
         it("strips parens and treats hyphens as spaces", () => {
             expect(lookupAlpha3("Guinea Bissau")).toBe("GNB");
             expect(lookupAlpha3("Guinea–Bissau")).toBe("GNB");

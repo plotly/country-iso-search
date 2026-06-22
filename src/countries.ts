@@ -39,10 +39,14 @@ export interface CountryRecord {
     readonly name: string;
     /**
      * Additional lowercase forms (excluding the canonical `name`) that resolve
-     * to this record's iso3. Aliases must be lowercased and in sanitized form —
-     * `lookupAlpha3` applies `sanitize` to user input before matching, so
-     * accented or punctuated variants would be redundant (and trip the
-     * duplicate-detection check).
+     * to this record's iso3. These are **match keys**, not display strings:
+     * stored lowercased and in sanitized form (no diacritics, apostrophes,
+     * `.` `()` `,` `[]`; hyphens turned into spaces; `st` expanded to `saint`;
+     * no leading `the`). `lookupAlpha3` applies the same `sanitize` transform
+     * to user input before matching, so accented or punctuated variants would
+     * be redundant — and adding them by hand will trip the duplicate-detection
+     * check. Consumers reading this field (e.g. `lookup("FRA")?.aliases`) get
+     * the raw match-key strings, not human-readable display names.
      */
     readonly aliases: readonly string[];
 }
@@ -149,7 +153,7 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
         aliases: [
             "🇦🇪",
             "emirates",
-            "the uae",
+            "uae",
             "الإمارات",
             "الإمارات العربية المتحدة",
             "الامارات",
@@ -221,7 +225,7 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
         iso2: "AG",
         m49: "028",
         name: "Antigua and Barbuda",
-        aliases: ["🇦🇬", "antigua barbuda"],
+        aliases: ["🇦🇬", "antigua", "antigua barbuda", "barbuda"],
     },
     {
         iso3: "AUS",
@@ -295,6 +299,7 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
             "bes eilanden",
             "bes islands",
             "bijzondere gemeente",
+            "bonaire",
             "bonaire saint eustatius and saba",
             "bonaire sint eustatius en saba",
             "caraibisch nederland",
@@ -303,6 +308,8 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
             "hulanda karibense",
             "islanan bes",
             "netherlands antilles",
+            "saba",
+            "sint eustatius",
         ],
     },
     {
@@ -370,6 +377,8 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
             "bosnia",
             "bosnia and hercegovina",
             "bosnia herzegovina",
+            "hercegovina",
+            "herzegovina",
             "бих",
             "босна",
             "босна и херцеговина",
@@ -574,7 +583,7 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
         iso2: "CN",
         m49: "156",
         name: "China",
-        aliases: ["🇨🇳", "china pr", "pr china", "prc", "the peoples republic of china", "中华人民共和国", "中国"],
+        aliases: ["🇨🇳", "china pr", "peoples republic of china", "pr china", "prc", "中华人民共和国", "中国"],
     },
     {
         iso3: "CIV",
@@ -606,6 +615,7 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
         aliases: [
             "🇨🇩",
             "congo belge",
+            "congo democratic republic of the",
             "congo kinshasa",
             "dem rep congo",
             "dem republic of congo",
@@ -859,13 +869,13 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
         name: "Ecuador",
         aliases: [
             "🇪🇨",
+            "ecuadorian state",
             "el ecuador",
             "estado ecuatoriano",
             "republic of ecuador",
             "republic of equator",
             "republic of the equator",
             "republica del ecuador",
-            "the ecuadorian state",
         ],
     },
     {
@@ -1067,8 +1077,8 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
             "great britain and northern ireland",
             "northern ireland",
             "scotland",
-            "the uk",
-            "the united kingdom",
+            "uk",
+            "united kingdom",
             "wales",
         ],
     },
@@ -1115,7 +1125,7 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
         iso2: "GI",
         m49: "292",
         name: "Gibraltar",
-        aliases: ["🇬🇮", "the rock of gibraltar"],
+        aliases: ["🇬🇮", "rock of gibraltar"],
     },
     {
         iso3: "GIN",
@@ -1263,9 +1273,13 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
         name: "Heard Island and McDonald Islands",
         aliases: [
             "🇭🇲",
+            "heard",
             "heard & mcdonald islands",
             "heard and macdonald islands",
+            "heard island",
             "himi",
+            "mcdonald",
+            "mcdonald island",
             "territory of heard island and mcdonald islands",
         ],
     },
@@ -1588,7 +1602,10 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
             "federation of saint christopher and nevis",
             "federation of saint kitts and nevis",
             "kitts & nevis",
+            "nevis",
+            "saint christopher",
             "saint christopher and nevis",
+            "saint kitts",
         ],
     },
     {
@@ -1600,6 +1617,7 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
             "🇰🇷",
             "korea",
             "korea republic",
+            "korea republic of",
             "korea south",
             "rep korea",
             "s korea",
@@ -1714,7 +1732,7 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
         iso2: "LS",
         m49: "426",
         name: "Lesotho",
-        aliases: ["🇱🇸", "kingdom of lesotho", "mmuso wa lesotho", "the mountain kingdom"],
+        aliases: ["🇱🇸", "kingdom of lesotho", "mmuso wa lesotho", "mountain kingdom"],
     },
     {
         iso3: "LTU",
@@ -1839,6 +1857,7 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
             "🇲🇩",
             "moldavia",
             "moldova",
+            "moldova republic of",
             "moldova republica",
             "r moldova",
             "rep moldova",
@@ -2170,6 +2189,7 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
             "nederlanden",
             "nederlandt",
             "netherlands",
+            "netherlands kingdom of the",
         ],
     },
     {
@@ -2339,6 +2359,7 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
             "choson minjujuui inmin konghwaguk",
             "dpr korea",
             "dprk",
+            "korea democratic peoples republic of",
             "n korea",
             "north korea",
             "공화국",
@@ -2370,6 +2391,7 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
         aliases: [
             "🇵🇸",
             "palestine",
+            "palestine state of",
             "palestinian authority",
             "palestinian national authority",
             "palestinian territory",
@@ -2438,12 +2460,12 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
             "igihugu cyimisozi igihumbi",
             "jamhuri ya rwanda",
             "la republique du rwanda",
+            "land of a thousand hills",
             "republic of rwanda",
             "republika yu rwanda",
             "republique du rwanda",
             "republique rwandaise",
             "repubulika yu rwanda",
-            "the land of a thousand hills",
             "u rwanda",
         ],
     },
@@ -2537,14 +2559,20 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
         iso2: "SH",
         m49: "654",
         name: "Saint Helena",
-        aliases: ["🇸🇭", "saint helena and dependencies", "saint helena ascension and tristan da cunha"],
+        aliases: [
+            "🇸🇭",
+            "ascension",
+            "saint helena and dependencies",
+            "saint helena ascension and tristan da cunha",
+            "tristan da cunha",
+        ],
     },
     {
         iso3: "SJM",
         iso2: "SJ",
         m49: "744",
         name: "Svalbard and Jan Mayen Islands",
-        aliases: ["🇸🇯", "svalbard og jan mayen"],
+        aliases: ["🇸🇯", "jan mayen", "svalbard", "svalbard and jan mayen", "svalbard og jan mayen"],
     },
     {
         iso3: "SLB",
@@ -2607,6 +2635,8 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
         aliases: [
             "🇵🇲",
             "collectivite territoriale de saint pierre et miquelon",
+            "miquelon",
+            "saint pierre",
             "saint pierre et miquelon",
             "territorial collectivity of saint pierre and miquelon",
         ],
@@ -2633,7 +2663,9 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
         aliases: [
             "🇸🇹",
             "democratic republic of sao tome and principe",
+            "principe",
             "republica democratica de sao tome e principe",
+            "sao tome",
             "sao tome e principe",
             "sao tome og principe",
         ],
@@ -2731,7 +2763,7 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
         iso2: "TC",
         m49: "796",
         name: "Turks and Caicos Islands",
-        aliases: ["🇹🇨", "turks & caicos"],
+        aliases: ["🇹🇨", "caicos", "caicos islands", "turks", "turks & caicos", "turks islands"],
     },
     {
         iso3: "TCD",
@@ -2874,13 +2906,13 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
             "nationalist china",
             "republic of china",
             "republic of china taiwan",
+            "roc",
             "taivang",
             "taiwan province of china",
             "taiwan roc",
             "taywan",
             "taywang",
             "teywan",
-            "the roc",
             "中華民國",
             "中華民國（臺灣）",
             "中華臺北",
@@ -2960,12 +2992,12 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
             "los estados unidos",
             "los estados unidos de america",
             "mokuaina hui pu ia",
-            "the united states",
-            "the us",
-            "the us of a",
-            "the us of america",
-            "the usa",
             "union americana",
+            "united states",
+            "us",
+            "us of a",
+            "us of america",
+            "usa",
         ],
     },
     {
@@ -2998,7 +3030,7 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
             "stato della citta del vaticano",
             "status civitatis vaticanae",
             "status civitatis vaticanæ",
-            "the vatican",
+            "vatican",
             "vatican city",
             "vatican city state",
             "vaticano",
@@ -3009,7 +3041,7 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
         iso2: "VC",
         m49: "670",
         name: "Saint Vincent and the Grenadines",
-        aliases: ["🇻🇨", "saint vincent", "saint vincent and grenadines"],
+        aliases: ["🇻🇨", "grenadines", "saint vincent", "saint vincent and grenadines"],
     },
     {
         iso3: "VEN",

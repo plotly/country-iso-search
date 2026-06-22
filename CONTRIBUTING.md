@@ -41,7 +41,7 @@ Please follow the [pull request template](.github/PULL_REQUEST_TEMPLATE.md). In 
 
 - Branch off the latest `main`. Do not open PRs from your own `main`.
 - Run `npm run lint`, `npm run typecheck`, `npm test`, and `npm run build` locally before pushing.
-- For alias additions, make sure the new aliases are lowercased, written in their sanitized form (no diacritics / apostrophes / `.` `()` `,` / hyphens; use `saint` not `st`), and sorted within each record using VS Code's "Sort Lines Ascending" (equivalent to `Intl.Collator("en")`: emoji first, then Latin, then non-Latin).
+- For alias additions, make sure the new aliases are lowercased, written in their sanitized form (no diacritics, apostrophes, `.` `()` `[]` `,`, or hyphens; use `saint` not `st`; no leading `the`), and sorted within each record using VS Code's "Sort Lines Ascending" (equivalent to `Intl.Collator("en")`: emoji first, then Latin, then non-Latin).
 - Don't force-push to remote branches once the PR is open — it makes review difficult. Merge `main` in if you need to update.
 
 ## Development
@@ -77,7 +77,7 @@ CI runs `typecheck`, `test`, and `build` on every PR — see [.github/workflows/
 ### Adding an alias
 
 1. Find the country's record in [src/countries.ts](src/countries.ts). Records are ordered by ISO 3166-1 alpha-3 code.
-2. Add the new alias to the `aliases` array. It must be **lowercased** and in **sanitized form** — `lookupAlpha3` applies `sanitize` (strips diacritics / apostrophes / `.` `()` `,`; turns hyphen-likes into spaces; expands `st` → `saint`; drops a leading `the `) to user input before matching, so adding accented or punctuated variants by hand is redundant and will trip the duplicate-detection check. Keep entries sorted within the array using VS Code's "Sort Lines Ascending" (equivalent to `Intl.Collator("en")`: emoji first, then Latin, then non-Latin).
+2. Add the new alias to the `aliases` array. It must be **lowercased** and in **sanitized form** — `lookupAlpha3` applies `sanitize` (strips diacritics, apostrophes, `.` `()` `[]` `,`; turns hyphen-likes into spaces; expands `st` → `saint`; drops `the` at the start of input or after `,`/`(`) to user input before matching, so adding accented or punctuated variants by hand is redundant and will trip the duplicate-detection check. Keep entries sorted within the array using VS Code's "Sort Lines Ascending" (equivalent to `Intl.Collator("en")`: emoji first, then Latin, then non-Latin).
 3. Run `npm test`. The duplicate-detection check runs at module load — if your alias collapses to the same sanitized key as another country's name or alias, the tests will throw on import with a clear "Duplicate name/alias" error pointing at the collision. (Within-country collisions are tolerated — they resolve to the same iso3.)
 4. If you're confident the alias is a common one, consider adding a regression test in [src/index.test.ts](src/index.test.ts) to lock in the resolution. The existing "United Kingdom aliases" block is a good model.
 
