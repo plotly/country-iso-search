@@ -125,6 +125,8 @@ npm view country-iso-search version
 
 Draft a new release at <https://github.com/plotly/country-iso-search/releases/new> targeting the `vX.Y.Z` tag. Copy the matching section from [CHANGELOG.md](CHANGELOG.md) into the body.
 
+Publishing the release triggers [`.github/workflows/deploy-demo.yml`](.github/workflows/deploy-demo.yml), which redeploys the [demo page](https://plotly.github.io/country-iso-search/demo/) from the tag.
+
 No follow-up changelog-stub PR is needed — `## [Unreleased]` was left in place at step 4, so the next contributor already has a section to land their entry under.
 
 ## Rolling back a bad release
