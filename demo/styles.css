@@ -1,0 +1,69 @@
+:root {
+    color-scheme: light dark;
+}
+
+body {
+    max-width: 42rem;
+    margin: 0 auto;
+    padding: 2rem 1rem 4rem;
+    font-family: system-ui, sans-serif;
+    line-height: 1.5;
+}
+
+[x-cloak] {
+    /* biome-ignore lint/complexity/noImportantStyles: required by Alpine's x-cloak directive */
+    display: none !important;
+}
+
+h1 code {
+    font-size: inherit;
+}
+
+/* Secondary text: tagline, hints, captions, footer. */
+.dim {
+    color: GrayText;
+    font-size: 0.9rem;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+input[type="search"] {
+    width: 100%;
+    padding: 0.5rem;
+    font: inherit;
+}
+
+/* Wrapping button groups: examples, aliases, suggestions. */
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    padding: 0;
+    list-style: none;
+}
+
+.iso3 {
+    margin: 1.5rem 0 0;
+    font-family: monospace;
+    font-size: 2.5rem;
+    font-weight: 600;
+}
+
+dt {
+    color: GrayText;
+    font-size: 0.9rem;
+}
+
+/* Long snippets scroll instead of widening the page. */
+pre {
+    overflow-x: auto;
+}
+
+footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid GrayText;
+}

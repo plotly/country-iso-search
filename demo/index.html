@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>country-iso-search — Live Demo</title>
+    <meta name="description"
+        content="Interactive demo for country-iso-search: resolve country names, codes, and aliases to canonical ISO 3166-1 alpha-3 codes." />
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="module" src="./demo.js"></script>
+    <script defer src="../node_modules/alpinejs/dist/cdn.min.js"></script>
+</head>
+
+<body>
+    <div x-data="demo" x-cloak>
+        <header>
+            <h1><code>country-iso-search</code></h1>
+            <p class="dim">
+                This library will resolve country names, codes, and aliases to canonical ISO 3166-1
+                alpha-3 codes.
+            </p>
+            <p class="dim">
+                <span x-text="`${recordCount} records`"></span> ·
+                <a href="https://github.com/plotly/country-iso-search">GitHub</a> ·
+                <a href="https://www.npmjs.com/package/country-iso-search">npm</a>
+            </p>
+        </header>
+
+        <main>
+            <form @submit.prevent>
+                <label for="query">Country name, code, or alias</label>
+                <input id="query" type="search" autocomplete="off" autocapitalize="off" spellcheck="false"
+                    placeholder="Try FRA, FR, 250, Türkiye, Ivory Coast, 🇯🇵 …" x-model="query" x-ref="query" />
+            </form>
+
+            <p class="dim">
+                Accepts alpha-3, alpha-2, UN M49 numeric, flag emoji, or any name / alias.
+                Matching is exact after normalization — there is no fuzzy search.
+            </p>
+
+            <div class="row">
+                <template x-for="ex in examples" :key="ex.value">
+                    <button type="button" :title="ex.note" x-text="ex.value" @click="run(ex.value)"></button>
+                </template>
+            </div>
+
+            <p class="dim" x-show="query.trim() === ''">Enter a query above to resolve it.</p>
+
+            <!-- Match -->
+            <template x-if="query.trim() !== '' && result !== null">
+                <section>
+                    <p class="iso3" x-text="result.iso3"></p>
+                    <p class="dim">
+                        Canonical alpha-3, matched by <span x-text="matchedBy"></span>
+                    </p>
+
+                    <dl>
+                        <dt>Name</dt>
+                        <dd x-text="result.name"></dd>
+                        <dt>Alpha-2</dt>
+                        <dd x-text="result.iso2 || '—'"></dd>
+                        <dt>UN M49</dt>
+                        <dd x-text="result.m49 || '—'"></dd>
+                        <dt>Normalized query</dt>
+                        <dd><code x-text="normalized"></code></dd>
+                    </dl>
+
+                    <pre><code x-text="snippet"></code></pre>
+                    <button type="button" x-text="copied === snippet ? 'Copied' : 'Copy'"
+                        @click="copy(snippet)"></button>
+
+                    <details x-show="result.aliases.length > 0">
+                        <summary>
+                            <span x-text="`${result.aliases.length} aliases`"></span>
+                            — every other string that resolves to
+                            <code x-text="result.iso3"></code>
+                        </summary>
+                        <ul class="row">
+                            <template x-for="alias in result.aliases" :key="alias">
+                                <li>
+                                    <button type="button" x-text="alias" @click="run(alias)"></button>
+                                </li>
+                            </template>
+                        </ul>
+                    </details>
+                </section>
+            </template>
+
+            <!-- No match -->
+            <template x-if="query.trim() !== '' && result === null">
+                <section>
+                    <p>
+                        <code x-text="query.trim()"></code> → <code>undefined</code>
+                    </p>
+                    <p class="dim">
+                        No record matches. Normalized to <code x-text="normalized"></code>.
+                    </p>
+
+                    <div x-show="suggestions.length > 0">
+                        <p class="dim">
+                            Contains that text (demo-only substring scan — the library itself
+                            does not do partial matching):
+                        </p>
+                        <ul class="row">
+                            <template x-for="s in suggestions" :key="s.term">
+                                <li>
+                                    <button type="button" x-text="`${s.term} → ${s.iso3}`"
+                                        @click="run(s.term)"></button>
+                                </li>
+                            </template>
+                        </ul>
+                    </div>
+
+                    <p class="dim" x-show="suggestions.length === 0">
+                        Nothing in the dataset contains that text either. If this is a country
+                        or alias the library should know,
+                        <a href="https://github.com/plotly/country-iso-search/issues/new/choose">
+                            open an issue </a>.
+                    </p>
+                </section>
+            </template>
+        </main>
+    </div>
+</body>
+
+</html>

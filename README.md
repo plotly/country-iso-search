@@ -12,6 +12,8 @@ Resolve country names and codes to their canonical ISO 3166-1 alpha-3 form.
 
 ---
 
+**[Try it in the browser →](https://plotly.github.io/country-iso-search/demo/)** — enter a query and see what resolves. Source in [`demo/`](demo/).
+
 Accepts alpha-3 (`"FRA"`), alpha-2 (`"FR"`), UN M49 numeric (`250`, `"250"`, `"04"`, or `"0250"` — leading zeros are stripped and the result is zero-padded to 3 digits), or a country name / alias. Name/alias matching is case-insensitive and input is sanitized before comparison: diacritics are stripped (`Türkiye` → `turkiye`), apostrophes and `.` `()` `[]` `,` are dropped, `&` becomes `and`, `-`/`–`/`—` become spaces, `st` expands to `saint`, `the` is dropped when it leads the input or follows `,`/`(` (so ISO short-name forms like `Korea (the Republic of)` and `Korea, the Republic of` both resolve), and internal whitespace is collapsed. Returns the canonical alpha-3, or `undefined` when no record matches.
 
 ## Install
