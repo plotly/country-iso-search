@@ -185,6 +185,7 @@ describe("lookupAlpha3", () => {
             expect(lookupAlpha3("Bolivia, Plurinational State of")).toBe("BOL");
             expect(lookupAlpha3("Micronesia, Federated States of")).toBe("FSM");
             expect(lookupAlpha3("Venezuela, Bolivarian Republic of")).toBe("VEN");
+            expect(lookupAlpha3("Macedonia, the Former Yugoslav Republic Of")).toBe("MKD");
         });
 
         it("strips parens and treats hyphens as spaces", () => {
