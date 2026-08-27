@@ -36,6 +36,9 @@ export { COUNTRIES, type CountryRecord } from "./countries.js";
  *   - trims and collapses internal whitespace
  *   - drops a single leading `the ` (so "the UK" matches "UK")
  *
+ * The character classes use `\uXXXX` escapes so the bundle parses on a page that
+ * omits a UTF-8 charset.
+ *
  * Exported for advanced use: consumers normalizing batches of country
  * references against external data can produce keys identical to the
  * lookup's internal name/alias index by calling this.
@@ -43,15 +46,15 @@ export { COUNTRIES, type CountryRecord } from "./countries.js";
 export function sanitize(s: string): string {
     return s
         .normalize("NFD")
-        .replace(/[̀-ͯ]/g, "")
+        .replace(/[\u0300-\u036F]/g, "") // ◌̀ to ◌ͯ - combining diacritical marks
         .normalize("NFC")
         .toLowerCase()
-        .replace(/[ً-ٟ]/g, "")
-        .replace(/['‘’ʻʼʽˈ′`]/g, "")
+        .replace(/[\u064B-\u065F]/g, "") // ◌ً to ◌ٟ - Arabic diacritics
+        .replace(/['\u2018\u2019\u02BB\u02BC\u02BD\u02C8\u2032`]/g, "") // ' ‘ ’ ʻ ʼ ʽ ˈ ′ `
         .replace(/&/g, " and ")
         .replace(/([,(])\s*the\b/g, "$1")
         .replace(/[.(),[\]]/g, "")
-        .replace(/[-–—]/g, " ")
+        .replace(/[-\u2013\u2014]/g, " ") // - – —
         .replace(/\bst\b/g, "saint")
         .trim()
         .replace(/\s+/g, " ")
