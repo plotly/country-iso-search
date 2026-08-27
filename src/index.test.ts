@@ -252,7 +252,8 @@ describe("sanitize (exported)", () => {
     });
 
     it("keeps its source ASCII-only so a mis-decoded bundle still parses", () => {
-        const nonAscii = [...sanitize.toString()].filter((c) => (c.codePointAt(0) ?? 0) > 0x7f);
+        const ASCII_UPPER_LIMIT = 127;
+        const nonAscii = [...sanitize.toString()].filter((c) => (c.codePointAt(0) ?? 0) > ASCII_UPPER_LIMIT);
         expect(nonAscii).toEqual([]);
     });
 
