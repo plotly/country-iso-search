@@ -12,6 +12,9 @@ where X.Y.Z is the semver of the most recent country-iso-search release.
 
 ## [Unreleased]
 
+### Changed
+- Updated name from "Nauru" to "Naoero" per update from country and ISO-3166 [[#7](https://github.com/plotly/country-iso-search/pull/7)]
+
 ### Fixed
 - Use escaped Unicode characters for regex patterns to avoid error on a page that omits a UTF-8 charset [[#6](https://github.com/plotly/country-iso-search/pull/6)]
 
