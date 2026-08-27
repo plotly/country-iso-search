@@ -1,5 +1,9 @@
 # country-iso-search
 
+[![npm](https://img.shields.io/npm/v/country-iso-search)](https://www.npmjs.com/package/country-iso-search)
+[![Test](https://github.com/plotly/country-iso-search/actions/workflows/test.yml/badge.svg)](https://github.com/plotly/country-iso-search/actions/workflows/test.yml)
+[![License: MIT](https://img.shields.io/npm/l/country-iso-search)](LICENSE)
+
 Resolve country names and codes to their canonical ISO 3166-1 alpha-3 form.
 
 <br/>
