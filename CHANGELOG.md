@@ -12,6 +12,8 @@ where X.Y.Z is the semver of the most recent country-iso-search release.
 
 ## [Unreleased]
 
+## [0.1.2] -- 2026-08-27
+
 ### Changed
 - Updated name from "Nauru" to "Naoero" per update from country and ISO-3166 [[#7](https://github.com/plotly/country-iso-search/pull/7)]
 
