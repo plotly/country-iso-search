@@ -251,6 +251,12 @@ describe("sanitize (exported)", () => {
         expect(sanitize("St. Kitts and Nevis")).toBe("saint kitts and nevis");
     });
 
+    it("keeps its source ASCII-only so a mis-decoded bundle still parses", () => {
+        const ASCII_UPPER_LIMIT = 127;
+        const nonAscii = [...sanitize.toString()].filter((c) => (c.codePointAt(0) ?? 0) > ASCII_UPPER_LIMIT);
+        expect(nonAscii).toEqual([]);
+    });
+
     it("produces keys consumers can match against the alias index", () => {
         // Every COUNTRIES record's sanitized name should match its iso3 via lookup.
         for (const c of COUNTRIES) {
