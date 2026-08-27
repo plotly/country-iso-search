@@ -12,6 +12,9 @@ where X.Y.Z is the semver of the most recent country-iso-search release.
 
 ## [Unreleased]
 
+### Fixed
+- Use escaped Unicode characters for regex patterns to avoid error on a page that omits a UTF-8 charset [[#6](https://github.com/plotly/country-iso-search/pull/6)]
+
 ## [0.1.1] -- 2026-06-22
 
 ### Changed
