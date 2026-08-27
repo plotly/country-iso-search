@@ -2228,8 +2228,8 @@ export const COUNTRIES: ReadonlyArray<CountryRecord> = [
         iso3: "NRU",
         iso2: "NR",
         m49: "520",
-        name: "Nauru",
-        aliases: ["🇳🇷", "naoero", "pleasant island", "republic of nauru"],
+        name: "Naoero",
+        aliases: ["🇳🇷", "nauru", "pleasant island", "republic of naoero", "republic of nauru"],
     },
     {
         iso3: "NZL",
